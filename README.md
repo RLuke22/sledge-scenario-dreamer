@@ -15,7 +15,7 @@
 > <br>
 >
 
-This repo contains SLEDGE, the first generative simulator for vehicle motion planning trained on real-world driving logs. We will be publicly releasing our code for simulation, evaluation, and training (including pre-trained checkpoints). 
+This repo is a fork of SLEDGE containing modifications to the original repository to preprocess the NuPlan dataset for Scenario Dreamer training. It also includes the modifications to the SLEDGE repository that we made for training/evaluating the SLEDGE model. 
 
 <br/>
 

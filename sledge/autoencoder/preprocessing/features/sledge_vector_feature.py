@@ -142,7 +142,115 @@ class SledgeVector(AbstractModelFeature):
 
 
 @dataclass
+class SledgeVectorNew(AbstractModelFeature):
+    """Feature class of complete vector representation in sledge."""
+
+    lines: SledgeVectorElement
+    vehicles: SledgeVectorElement
+    pedestrians: SledgeVectorElement
+    static_objects: SledgeVectorElement
+    green_lights: SledgeVectorElement
+    red_lights: SledgeVectorElement
+    ego: SledgeVectorElement
+    G: SledgeVectorElement
+
+    def to_device(self, device: torch.device) -> SledgeVectorNew:
+        """Implemented. See interface."""
+        return SledgeVectorNew(
+            lines=self.lines.to_device(device=device),
+            vehicles=self.vehicles.to_device(device=device),
+            pedestrians=self.pedestrians.to_device(device=device),
+            static_objects=self.static_objects.to_device(device=device),
+            green_lights=self.green_lights.to_device(device=device),
+            red_lights=self.red_lights.to_device(device=device),
+            ego=self.ego.to_device(device=device),
+            G = self.G.to_device(device=device)
+        )
+
+    def to_feature_tensor(self) -> SledgeVector:
+        """Inherited, see superclass."""
+        return SledgeVectorNew(
+            lines=self.lines.to_feature_tensor(),
+            vehicles=self.vehicles.to_feature_tensor(),
+            pedestrians=self.pedestrians.to_feature_tensor(),
+            static_objects=self.static_objects.to_feature_tensor(),
+            green_lights=self.green_lights.to_feature_tensor(),
+            red_lights=self.red_lights.to_feature_tensor(),
+            ego=self.ego.to_feature_tensor(),
+            G = self.G.to_feature_tensor()
+        )
+
+    @classmethod
+    def deserialize(cls, data: Dict[str, Any]) -> SledgeVector:
+        """Implemented. See interface."""
+        return SledgeVector(
+            lines=SledgeVectorElement.deserialize(data["lines"]),
+            vehicles=SledgeVectorElement.deserialize(data["vehicles"]),
+            pedestrians=SledgeVectorElement.deserialize(data["pedestrians"]),
+            static_objects=SledgeVectorElement.deserialize(data["static_objects"]),
+            green_lights=SledgeVectorElement.deserialize(data["green_lights"]),
+            red_lights=SledgeVectorElement.deserialize(data["red_lights"]),
+            ego=SledgeVectorElement.deserialize(data["ego"]),
+            G=SledgeVectorElement.deserialize(data["G"])
+        )
+
+    def unpack(self) -> List[SledgeVector]:
+        """Implemented. See interface."""
+        return [
+            SledgeVector(lines, vehicles, pedestrians, static_objects, green_lights, red_lights, ego, G)
+            for lines, vehicles, pedestrians, static_objects, green_lights, red_lights, ego, G in zip(
+                self.lines.unpack(),
+                self.vehicles.unpack(),
+                self.pedestrians.unpack(),
+                self.static_objects.unpack(),
+                self.green_lights.unpack(),
+                self.red_lights.unpack(),
+                self.ego.unpack(),
+                self.G.unpack()
+            )
+        ]
+
+    @classmethod
+    def collate(cls, batch: List[SledgeVector]) -> SledgeVector:
+        """
+        Implemented. See interface.
+        Collates a list of features that each have batch size of 1.
+        """
+        return SledgeVector(
+            lines=SledgeVectorElement.collate([item.lines for item in batch]),
+            vehicles=SledgeVectorElement.collate([item.vehicles for item in batch]),
+            pedestrians=SledgeVectorElement.collate([item.pedestrians for item in batch]),
+            static_objects=SledgeVectorElement.collate([item.static_objects for item in batch]),
+            green_lights=SledgeVectorElement.collate([item.green_lights for item in batch]),
+            red_lights=SledgeVectorElement.collate([item.red_lights for item in batch]),
+            ego=SledgeVectorElement.collate([item.ego for item in batch]),
+            G=SledgeVectorElement.collate([item.G for item in batch])
+        )
+
+    def torch_to_numpy(self, apply_sigmoid: bool = True) -> SledgeVector:
+        """Helper method to convert feature from torch tensor to numpy array."""
+        return SledgeVector(
+            lines=self.lines.torch_to_numpy(apply_sigmoid),
+            vehicles=self.vehicles.torch_to_numpy(apply_sigmoid),
+            pedestrians=self.pedestrians.torch_to_numpy(apply_sigmoid),
+            static_objects=self.static_objects.torch_to_numpy(apply_sigmoid),
+            green_lights=self.green_lights.torch_to_numpy(apply_sigmoid),
+            red_lights=self.red_lights.torch_to_numpy(apply_sigmoid),
+            ego=self.ego.torch_to_numpy(apply_sigmoid),
+            G=self.G.torch_to_numpy(apply_sigmoid)
+        )
+
+
+@dataclass
 class SledgeVectorRaw(SledgeVector):
+    """Feature class of raw vector representation, for feature caching."""
+
+    # NOTE: Placeholder class for type hints
+    pass
+
+
+@dataclass
+class SledgeVectorRawNew(SledgeVectorNew):
     """Feature class of raw vector representation, for feature caching."""
 
     # NOTE: Placeholder class for type hints

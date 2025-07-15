@@ -3,7 +3,7 @@ _convert_: 'all'
 
 activation_fn: "gelu-approximate"
 attention_bias: true
-attention_head_dim: 64
+attention_head_dim: 72
 dropout: 0.0
 in_channels: 64
 norm_elementwise_affine: false

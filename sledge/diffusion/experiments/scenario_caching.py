@@ -2,12 +2,13 @@ from pathlib import Path
 from tqdm import tqdm
 from omegaconf import DictConfig
 from accelerate.logging import get_logger
+import time
 
 from nuplan.planning.training.preprocessing.utils.feature_cache import FeatureCachePickle
 
 from sledge.autoencoder.preprocessing.features.sledge_vector_feature import SledgeVector
 from sledge.autoencoder.preprocessing.features.map_id_feature import MAP_ID_TO_NAME
-from sledge.script.builders.diffusion_builder import build_pipeline_from_checkpoint
+from sledge.script.builders.diffusion_builder import build_pipeline_from_checkpoint, build_accelerator
 
 logger = get_logger(__name__, log_level="INFO")
 
@@ -17,6 +18,7 @@ def run_scenario_caching(cfg: DictConfig) -> None:
     Applies the diffusion model generate and cache scenarios.
     :param cfg: DictConfig. Configuration that is used to run the experiment.
     """
+    accelerator = build_accelerator(cfg)
 
     logger.info("Building pipeline from checkpoint...")
     pipeline = build_pipeline_from_checkpoint(cfg)
@@ -28,13 +30,18 @@ def run_scenario_caching(cfg: DictConfig) -> None:
     current_cache_size: int = 0
     class_labels = list(range(cfg.num_classes)) * (cfg.inference_batch_size // cfg.num_classes)
     num_total_batches = (cfg.cache.scenario_cache_size // cfg.inference_batch_size) + 1
+    print("Inference batch size", cfg.inference_batch_size)
+    times = []
     for _ in tqdm(range(num_total_batches), desc="Load cache files..."):
+        start_time = time.time()
         sledge_vector_list = pipeline(
             class_labels=class_labels,
             num_inference_timesteps=cfg.num_inference_timesteps,
             guidance_scale=cfg.guidance_scale,
             num_classes=cfg.num_classes,
         )
+        end_time = time.time()
+        times.append(end_time - start_time)
         for sledge_vector, map_id in zip(sledge_vector_list, class_labels):
             sledge_vector_numpy: SledgeVector = sledge_vector.torch_to_numpy()
             file_name = (
@@ -50,4 +57,5 @@ def run_scenario_caching(cfg: DictConfig) -> None:
             if current_cache_size >= cfg.cache.scenario_cache_size:
                 break
     logger.info("Scenario caching...DONE!")
+    print("Per-scene gen time: ", sum(times) / cfg.cache.scenario_cache_size)
     return None

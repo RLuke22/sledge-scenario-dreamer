@@ -104,7 +104,7 @@ def get_discrete_path(lane_dict: Dict[str, LaneGraphEdgeMapObject], lane_ids: Li
     return discrete_path
 
 
-def get_edge_graph(ego_state: EgoState, map_api: AbstractMap, radius: float) -> List[PDMPath]:
+def get_edge_graph(ego_state, map_api, radius):
     """
     Lane graph preprocessing method, as described in the supplementary material.
     Simplifies the formulation of a lane, by summarizing consecutive nodes,
@@ -139,6 +139,7 @@ def get_edge_graph(ego_state: EgoState, map_api: AbstractMap, radius: float) -> 
             stop_dict[lane_id] = lane
 
     paths_list: List[PDMPath] = []
+    path_to_targets_list = []
 
     # add nodes to line graph
     for start_lane_id, start_lane in start_dict.items():
@@ -155,8 +156,9 @@ def get_edge_graph(ego_state: EgoState, map_api: AbstractMap, radius: float) -> 
                 continue
 
             paths_list.append(PDMPath(list(array_to_states_se2(local_discrete_path))))
-
-    return paths_list
+            path_to_targets_list.append(path_to_targets)
+    
+    return paths_list, path_to_targets_list, G_lane
 
 
 def get_traffic_light_discrete_paths(
@@ -218,6 +220,37 @@ def compute_path_features(interpolatable_paths: List[PDMPath], pose_interval: fl
     return SledgeVectorElement(lines, mask)
 
 
+def get_compact_lane_graph(G, path_ids_list):
+    compact_G=nx.DiGraph()
+    for i in range(len(path_ids_list)):
+        compact_G.add_node(i)
+    
+    idx_to_list = {}
+    id_to_idx = {}
+    for i, li in enumerate(path_ids_list):
+        idx_to_list[i] = li 
+
+        for lane_id in li:
+            id_to_idx[lane_id] = i
+
+    for idx, li in idx_to_list.items():
+        first_id = li[0]
+        predecessor_ids = list(set(G.predecessors(first_id)))
+        for pre_id in predecessor_ids:
+            if pre_id in id_to_idx:
+                if not compact_G.has_edge(id_to_idx[pre_id], idx):
+                    compact_G.add_edge(id_to_idx[pre_id], idx)
+
+        last_id = li[-1]
+        successor_ids = list(set(G.successors(last_id)))
+        for suc_id in successor_ids:
+            if suc_id in id_to_idx:
+                if not compact_G.has_edge(idx, id_to_idx[suc_id]):
+                    compact_G.add_edge(idx, id_to_idx[suc_id])
+    
+    return compact_G
+
+
 def compute_line_features(
     ego_state: EgoState, map_api: AbstractMap, radius: float, pose_interval: float
 ) -> SledgeVectorElement:
@@ -229,8 +262,12 @@ def compute_line_features(
     :param pose_interval: interval of poses to sample in meter
     :return: raw sledge vector element for feature caching.
     """
-    interpolatable_paths = get_edge_graph(ego_state, map_api, radius)
-    return compute_path_features(interpolatable_paths, pose_interval)
+    interpolatable_paths, path_ids_list, G_uncompressed = get_edge_graph(ego_state, map_api, radius)
+    G = get_compact_lane_graph(G_uncompressed, path_ids_list)
+    G = nx.to_numpy_array(G)
+    G = SledgeVectorElement(G, np.array([], dtype=bool))
+    
+    return compute_path_features(interpolatable_paths, pose_interval), G
 
 
 def compute_traffic_light_features(

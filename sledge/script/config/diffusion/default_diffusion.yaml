@@ -24,7 +24,7 @@ num_epochs: 100
 debug_mode: true # runs one train batch and inference if true
 
 inference_epochs: 1
-inference_batch_size: 16
+inference_batch_size: 128
 num_classes: 4
 
 guidance_scale: 4.0
@@ -61,7 +61,7 @@ cache:
   cleanup_diffusion_cache: false
 
   scenario_cache_path: ${oc.env:SLEDGE_EXP_ROOT}/caches/scenario_cache
-  scenario_cache_size: 32
+  scenario_cache_size: 50000
 
 # # Mandatory parameters
 py_func: ???

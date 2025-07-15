@@ -1,12 +1,12 @@
 # Installation and download
 
-To get started with SLEDGE, we provide the main instructions on how to install the devkit and download the necessary data for training and simulation.
+Small modifications to installation instructions for SLEDGE. Remember to define the SCRATCH_ROOT variable below.
 
 ### 1. Clone the sledge-devkit
 Begin by cloning the SLEDGE repository and navigating to the repository directory:
 ```bash
-git clone https://github.com/autonomousvision/sledge.git
-cd sledge
+git clone https://github.com/RLuke22/sledge-scenario-dreamer.git
+cd sledge-scenario-dreamer
 ```
 
 ### 2. Download the data
@@ -64,11 +64,13 @@ After downloading, organize the decompressed files in the following directory st
 Several environment variables need to be added next to your `~/.bashrc` file. 
 For the above, the environment variables are defined as:
 ```bash
-export NUPLAN_DATA_ROOT="$HOME/sledge_workspace/dataset"
-export NUPLAN_MAPS_ROOT="$HOME/sledge_workspace/dataset/maps"
 
-export SLEDGE_EXP_ROOT="$HOME/sledge_workspace/exp"
-export SLEDGE_DEVKIT_ROOT="$HOME/sledge_workspace/sledge"
+export SCRATCH_ROOT="/path/to/scratch/directory"
+export NUPLAN_DATA_ROOT="$SCRATCH_ROOT/nuplan_dataset"
+export NUPLAN_MAPS_ROOT="$SCRATCH_ROOT/nuplan_dataset/maps"
+
+export SLEDGE_EXP_ROOT="$SCRATCH_ROOT/exp"
+export SLEDGE_DEVKIT_ROOT="$HOME/sledge-scenario-dreamer"
 ```
 
 ### 3. Install the sledge-devkit

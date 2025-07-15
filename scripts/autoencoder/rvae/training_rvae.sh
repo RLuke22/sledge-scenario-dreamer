@@ -1,5 +1,5 @@
 JOB_NAME=training_rvae_model
-AUTOENCODER_CACHE_PATH=/path/to/exp/caches/autoencoder_cache
+AUTOENCODER_CACHE_PATH=$SCRATCH_ROOT/exp/caches/autoencoder_cache
 AUTOENCODER_CHECKPOINT=null # set for weight intialization / continue training
 USE_CACHE_WITHOUT_DATASET=True
 SEED=0

@@ -14,7 +14,7 @@ from nuplan.planning.training.preprocessing.feature_builders.abstract_feature_bu
 )
 
 from sledge.simulation.planner.pdm_planner.observation.pdm_occupancy_map import PDMOccupancyMap
-from sledge.autoencoder.preprocessing.features.sledge_vector_feature import SledgeVectorRaw, SledgeConfig
+from sledge.autoencoder.preprocessing.features.sledge_vector_feature import SledgeVectorRaw, SledgeConfig, SledgeVectorRawNew
 from sledge.autoencoder.preprocessing.feature_builders.sledge.sledge_agent_feature import (
     compute_ego_features,
     compute_agent_features,
@@ -44,7 +44,7 @@ class SledgeRawFeatureBuilder(AbstractFeatureBuilder):
     @classmethod
     def get_feature_type(cls) -> Type[AbstractModelFeature]:
         """Inherited, see superclass."""
-        return SledgeVectorRaw
+        return SledgeVectorRawNew
 
     def get_features_from_simulation(
         self, current_input: PlannerInput, initialization: PlannerInitialization
@@ -59,7 +59,7 @@ class SledgeRawFeatureBuilder(AbstractFeatureBuilder):
 
         return self._compute_features(ego_state, map_api, detections, traffic_light_data)
 
-    def get_features_from_scenario(self, scenario: AbstractScenario) -> SledgeVectorRaw:
+    def get_features_from_scenario(self, scenario: AbstractScenario) -> SledgeVectorRawNew:
         """Inherited, see superclass."""
 
         ego_state = scenario.initial_ego_state
@@ -71,23 +71,22 @@ class SledgeRawFeatureBuilder(AbstractFeatureBuilder):
 
     def _compute_features(
         self,
-        ego_state: EgoState,
-        map_api: AbstractMap,
-        detections: DetectionsTracks,
-        traffic_light_data: List[TrafficLightStatusData],
-    ) -> SledgeVectorRaw:
+        ego_state,
+        map_api,
+        detections,
+        traffic_light_data):
         """
         Compute raw vector feature for autoencoder training.
         :param ego_state: object of ego vehicle state in nuPlan
         :param map_api: object of map in nuPlan
         :param detections: dataclass of detected objects in scenario
         :param traffic_light_data: dataclass of traffic lights in nuPlan
-        :return: raw vector representation of lines, agents, objects, etc.
+        :return: raw vector representation of lines, agents, objects, and lane graph etc.
         """
 
         drivable_area_map = get_drivable_area_map(map_api, ego_state, self._config.radius)
 
-        lines = compute_line_features(
+        lines, G = compute_line_features(
             ego_state,
             map_api,
             self._config.radius,
@@ -130,7 +129,7 @@ class SledgeRawFeatureBuilder(AbstractFeatureBuilder):
         )
         ego = compute_ego_features(ego_state)
 
-        return SledgeVectorRaw(lines, vehicles, pedestrians, static_objects, green_lights, red_lights, ego)
+        return SledgeVectorRawNew(lines, vehicles, pedestrians, static_objects, green_lights, red_lights, ego, G)
 
 
 def get_drivable_area_map(
