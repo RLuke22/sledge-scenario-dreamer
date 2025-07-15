@@ -17,6 +17,19 @@
 
 This repo is a fork of SLEDGE containing modifications to the original repository to preprocess the NuPlan dataset for Scenario Dreamer training. It also includes the modifications to the SLEDGE repository that we made for training/evaluating the SLEDGE model. 
 
+Key changes include:
+
+1. **Lane connectivity extraction**  
+   - Scenario Dreamer requires an adjacency matrix capturing lane connectivity. We use only *predecessor/successor* edges for NuPlan, whereas we additionally use left/right edges for Waymo.
+
+2. **Test scene sampling**  
+   - Test frames are extracted at 2× the frequency to enable uniform sampling of 50,000 test scenes across the 4 NuPlan cities (used for Frechet metric evaluation).
+
+3. **Training reproduction scripts**  
+   - Includes scripts to reproduce our SLEDGE training runs and scenario caching for evaluation.
+
+---
+
 <br/>
 
 https://github.com/autonomousvision/sledge/assets/50077664/1c653fda-6e44-4018-ae98-2ab3d0439cad
