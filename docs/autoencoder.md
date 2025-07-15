@@ -10,6 +10,7 @@ The cache for the RVAE can be created by running:
 ```bash
 cd $SLEDGE_DEVKIT_ROOT/scripts/autoencoder/rvae/
 bash feature_caching_rvae.sh
+bash feature_caching_rvae_test.sh
 ```
 This script pre-processes the vector features of several maps sequentially. The cached features only store the local map and agents in a general vector format. The features are further processed and rasterized on the fly during training. This two-step processing enables fast access to training data and allows data augmentation (e.g. random rotation and translation) for RVAE training. The feature cache is compatible with other autoencoders.
 
